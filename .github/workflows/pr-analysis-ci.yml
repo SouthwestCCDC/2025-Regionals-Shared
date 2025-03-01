@@ -32,7 +32,8 @@ jobs:
 
       - name: Check for Binary Files
         run: |
-          find . -type f \( ! -iname "*.pdf" ! -iname "*.doc" ! -iname "*.png" ! -iname "*.ppt" \) \( ! -path "./.git/*" ! -path "./.github/*" \) -exec file --mime {} + |
+          set -x
+          find . -type f \( ! -path "./.git/*" ! -path "./.github/*" \) -exec file --mime {} + |
           grep -vE 'text|application/pdf|application/msword|image/png|application/vnd.ms-powerpoint' | grep -q . && echo 'Binary files detected!' && exit 1
 
       - name: Check README.md Content
