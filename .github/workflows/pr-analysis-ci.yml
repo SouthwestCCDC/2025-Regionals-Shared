@@ -38,9 +38,6 @@ jobs:
 
       - name: Check for Binary Files
         run: |
-#          find . -type f \( ! -path "./.git/*" ! -path "./.github/*" \) -exec file --mime {} + |
-#          grep -vE 'text|application/pdf|application/msword|image/png|application/vnd.ms-powerpoint' | grep -q . && { echo 'Binary files detected!'; exit 1; } || echo "No binary files found"
-
           find . -type f \( ! -path "./.git/*" ! -path "./.github/*" \) -exec file --mime {} + | grep -vE 'text|application/pdf|application/msword|image/png|application/vnd.ms-powerpoint' > /tmp/binary_files.txt
           if [ -s /tmp/binary_files.txt ]; then
             echo "Binary files detected:" && cat /tmp/binary_files.txt && exit 1
