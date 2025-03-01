@@ -2,7 +2,17 @@
 
 **Deadline to submit: March 14th at 6pm CT**
 
-The Repository for SWCCDC teams to submit team-made docs and code they wish to bring into the game environment. You must submit a pull request against this repo by **March 14th at 6pm CT** for consideration. The Southwest CCDC team will review and merge acceptable submissions. Your PR/submission should contain all the materials you want to include in a folder, NOT ENCRYPTED OR OBFUSCATED in any way. Everything posted to this repo must be available for any team to use and open to scrutiny by the competition organizers AND other teams. You may only submit things your team has created or modified for use during the game that you have the rights to distribute.
+The Repository for SWCCDC teams to submit team-made docs and code they wish to bring into the game environment.
+You must submit a pull request against this repo by the deadline above for consideration.
+The Southwest CCDC team will review and merge acceptable submissions.
+
+Rules for submission:
+- Your PR/submission should contain all the materials in you school's folder
+- All files must be plaintext and NOT ENCRYPTED OR OBFUSCATED in any way
+- You may only submit things your team has created or modified for use during the game that you have the rights to distribute
+- Everything posted to this repo must be available for any team to use and open to scrutiny by the competition organizers AND other teams.
+- You may submit a maximum of 15,000 lines at 400 characters per line
+- No binary files except for PDF, DOC, PNG, and PPT
 
 **If you have any questions or need help, reach out to Gold Team or Black Team on Discord.**
 
