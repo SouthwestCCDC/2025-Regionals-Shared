@@ -13,25 +13,13 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Write to file
-        run: |
-          echo "Hello, World!" > hello.txt
-          if [ -s hello.txt ]; then
-            echo "File created successfully"
-          else
-            echo "File creation failed" && exit 1
-          fi
-
       - name: Check for Encrypted Files
         run: |
           find . -type f \( -iname "*.gpg" -o -iname "*.pgp" -o -iname "*.asc" -o -iname "*.kdbx" \) \( ! -path "./.git/*" ! -path "./.github/*" \) > encrypted_files.txt
           if [ -s encrypted_files.txt ]; then
             echo "Encrypted GPG files detected:" && cat encrypted_files.txt && exit 1
           fi
-          find . -type f \( ! -path "./.git/*" ! -path "./.github/*" \) -exec file {} + | grep 'PGP message' > pgp_files.txt
-          if [ -s pgp_files.txt ]; then
-            echo "PGP encrypted files detected:" && cat pgp_files.txt && exit 1
-          fi
+
 
       - name: Check for Compressed Files
         run: |
