@@ -15,24 +15,24 @@ jobs:
 
       - name: Check for Encrypted Files
         run: |
-          if find . -type f \( -iname "*.gpg" -o -iname "*.pgp" -o -iname "*.asc" -o -iname "*.kdbx" \) | grep -q .; then
+          if find . -type f \( -iname "*.gpg" -o -iname "*.pgp" -o -iname "*.asc" -o -iname "*.kdbx" \) \( ! -path "./.git/*" ! -path "./.github/*" \) | grep -q .; then
             echo "Encrypted GPG files detected!" && exit 1
           fi
-          if find . -type f -iname "*.zip" | xargs -I {} zipinfo -v {} | grep -q "encrypted"; then
+          if find . -type f -iname "*.zip" \( ! -path "./.git/*" ! -path "./.github/*" \) | xargs -I {} zipinfo -v {} | grep -q "encrypted"; then
             echo "Password-protected ZIP detected!" && exit 1
           fi
-          if find . -type f -exec file {} + | grep -q "PGP message"; then
+          if find . -type f \( ! -path "./.git/*" ! -path "./.github/*" \) -exec file {} + | grep -q "PGP message"; then
             echo "PGP encrypted file detected!" && exit 1
           fi
 
       - name: Check Line and Character Limits
         run: |
-          find . -type f \( ! -iname "*.pdf" ! -iname "*.doc" ! -iname "*.png" ! -iname "*.ppt" \) -print0 |
+          find . -type f \( ! -iname "*.pdf" ! -iname "*.doc" ! -iname "*.png" ! -iname "*.ppt" \) \( ! -path "./.git/*" ! -path "./.github/*" \) -print0 |
           xargs -0 awk 'length > 400 {print FILENAME " has a line exceeding 400 characters"; exit 1} END {if (NR > 15000) {print FILENAME " has more than 15,000 lines"; exit 1}}'
 
       - name: Check for Binary Files
         run: |
-          find . -type f \( ! -iname "*.pdf" ! -iname "*.doc" ! -iname "*.png" ! -iname "*.ppt" \) -exec file --mime {} + |
+          find . -type f \( ! -iname "*.pdf" ! -iname "*.doc" ! -iname "*.png" ! -iname "*.ppt" \) \( ! -path "./.git/*" ! -path "./.github/*" \) -exec file --mime {} + |
           grep -vE 'text|application/pdf|application/msword|image/png|application/vnd.ms-powerpoint' | grep -q . && echo "Binary files detected!" && exit 1
 
       - name: Check README.md Content
