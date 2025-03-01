@@ -45,7 +45,8 @@ jobs:
       - name: debug binary file
         run: |
           set -x
-          find . -type f \( ! -path "./.git/*" ! -path "./.github/*" \) -exec file --mime {} + | grep -vE 'text|application/pdf|application/msword|image/png|application/vnd.ms-powerpoint'
+          find . -type f \( ! -path "./.git/*" ! -path "./.github/*" \) -exec file --mime {} + |
+          grep -vE 'text|application/pdf|application/msword|image/png|application/vnd.ms-powerpoint'
 
       - name: Check for Binary Files
         run: |
