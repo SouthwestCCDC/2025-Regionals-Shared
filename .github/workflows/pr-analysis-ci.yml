@@ -34,7 +34,7 @@ jobs:
         run: |
           set -x
           find . -type f \( ! -path "./.git/*" ! -path "./.github/*" \) -exec file --mime {} + |
-          grep -vE 'text|application/pdf|application/msword|image/png|application/vnd.ms-powerpoint' | grep -q . && echo 'Binary files detected!' && exit 1
+          grep -vE 'text|application/pdf|application/msword|image/png|application/vnd.ms-powerpoint' | grep -q . && { echo 'Binary files detected!'; exit 1; } || echo "No binary files found"
 
       - name: Check README.md Content
         run: |
