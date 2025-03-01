@@ -1,6 +1,5 @@
 # 2025-Regionals-Shared
 
-
 **Deadline to submit: March 14th at 6pm CT**
 
 The Repository for SWCCDC teams to submit team-made docs and code they wish to bring into the game environment.
@@ -68,7 +67,15 @@ Give the PR a name and an (optional) description if you feel that it will help u
 
 <img width="1440" alt="3 3 - PR Name and Create" src="https://user-images.githubusercontent.com/357174/154198958-7096b89d-711d-4b44-9aee-e2a7a8616226.png">
 
-### 4. Done!
+### 4. Verify CI jobs pass
+We utilize Github workflow CI jobs to scan the files added to make sure they comply with out requirements.
+
+We will not start reviewing a PR until all CI jobs are passing, so after you create the pull request verify the jobs all pass.
+
+<img width="916" alt="Screenshot 2025-03-01 at 3 42 43 PM" src="https://github.com/user-attachments/assets/1b3f67e7-f6f5-48dc-aeca-1d7bfdc5e49f" />
+
+
+### 5. Done!
 
 Congratulations! You have opened a Pull Request. We will review it and merge if everything looks good.
 
