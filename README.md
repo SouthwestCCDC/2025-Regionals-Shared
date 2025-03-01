@@ -1,5 +1,6 @@
 # 2025-Regionals-Shared
 
+
 **Deadline to submit: March 14th at 6pm CT**
 
 The Repository for SWCCDC teams to submit team-made docs and code they wish to bring into the game environment.
