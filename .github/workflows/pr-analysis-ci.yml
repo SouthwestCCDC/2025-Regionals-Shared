@@ -46,8 +46,7 @@ jobs:
         run: |
           find . -type f \( ! -path "./.git/*" ! -path "./.github/*" \) -exec file --mime {} + | tee /tmp/file_output.txt
           cat /tmp/file_output.txt
-          grep -vE 'text|application/pdf|application/msword|image/png|application/vnd.ms-powerpoint' /tmp/binary_files.txt
-          cat /tmp/binary_files.txt
+          grep -vE 'text|application/pdf|application/msword|image/png|application/vnd.ms-powerpoint' /tmp/file_output.txt
 
       - name: Check for Binary Files
         run: |
