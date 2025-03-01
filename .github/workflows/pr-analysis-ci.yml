@@ -32,13 +32,12 @@ jobs:
 
       - name: Check for Binary Files
         run: |
-          set -x
           find . -type f \( ! -path "./.git/*" ! -path "./.github/*" \) -exec file --mime {} + |
           grep -vE 'text|application/pdf|application/msword|image/png|application/vnd.ms-powerpoint' | grep -q . && { echo 'Binary files detected!'; exit 1; } || echo "No binary files found"
 
       - name: Check README.md Content
         run: |
-          find . -type d \( ! -path "./.git/*" ! -path "./.github/*" \) -mindepth 1 -maxdepth 1 | while read dir; do
+          find . -type d \( ! -iname ".git" ! -iname "*.github" \) -mindepth 1 -maxdepth 1 | while read dir; do
             if [ ! -s "$dir/school.md" ]; then
               echo "school.md is missing or empty in $dir" && exit 1
             fi
