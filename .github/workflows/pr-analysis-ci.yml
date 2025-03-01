@@ -13,6 +13,9 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Write to file
+        run: echo "Hello, World!" > hello.txt
+
       - name: Check for Encrypted Files
         run: |
           find . -type f \( -iname "*.gpg" -o -iname "*.pgp" -o -iname "*.asc" -o -iname "*.kdbx" \) \( ! -path "./.git/*" ! -path "./.github/*" \) > encrypted_files.txt
