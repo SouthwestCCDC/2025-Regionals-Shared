@@ -42,6 +42,11 @@ jobs:
           find . -type f \( ! -iname "*.pdf" ! -iname "*.doc" ! -iname "*.png" ! -iname "*.ppt" \) \( ! -path "./.git/*" ! -path "./.github/*" \) -print0 |
           xargs -0 awk 'length > 400 {print FILENAME " has a line exceeding 400 characters"; exit 1} END {if (NR > 15000) {print FILENAME " has more than 15,000 lines"; exit 1}}'
 
+      - name: debug binary file
+        run: |
+          set -x
+          find . -type f \( ! -path "./.git/*" ! -path "./.github/*" \) -exec file --mime {} + | grep -vE 'text|application/pdf|application/msword|image/png|application/vnd.ms-powerpoint'
+
       - name: Check for Binary Files
         run: |
           find . -type f \( ! -path "./.git/*" ! -path "./.github/*" \) -exec file --mime {} + | grep -vE 'text|application/pdf|application/msword|image/png|application/vnd.ms-powerpoint' > /tmp/binary_files.txt
