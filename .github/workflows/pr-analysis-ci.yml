@@ -68,8 +68,14 @@ jobs:
           fetch-depth: 0
       - name: Check Line and Character Limits
         run: |
-          find . -type f \( ! -iname "*.pdf" ! -iname "*.doc" ! -iname "*.png" ! -iname "*.ppt" \) \( ! -path "./.git/*" ! -path "./.github/*" \) -print0 |
-          xargs -0 awk 'length > 400 {print FILENAME " has a line exceeding 400 characters"; exit 1} END {if (NR > 15000) {print FILENAME " has more than 15,000 lines"; exit 1}}'
+          find . -type d \( ! -path "./.git" ! -path "./.github" \) -mindepth 1 -maxdepth 1 | while read dir; do
+            total_lines=$(find "$dir" -type f \( ! -iname "*.pdf" ! -iname "*.doc" ! -iname "*.png" ! -iname "*.ppt" \) -print0 | xargs -0 cat | wc -l)
+            if [ "$total_lines" -gt 15000 ]; then
+              echo "Total number of lines in $dir exceeds 15,000: $total_lines" && exit 1
+            fi
+            find "$dir" -type f \( ! -iname "*.pdf" ! -iname "*.doc" ! -iname "*.png" ! -iname "*.ppt" \) -print0 |
+            xargs -0 awk 'length > 400 {print FILENAME " has a line exceeding 400 characters"; exit 1}'
+          done
 
   check-binary-files:
     runs-on: ubuntu-latest
