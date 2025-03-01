@@ -13,6 +13,7 @@ Rules for submission:
 - Everything posted to this repo must be available for any team to use and open to scrutiny by the competition organizers AND other teams.
 - You may submit a maximum of 15,000 lines at 400 characters per line
 - No binary files except for PDF, DOC, PNG, and PPT
+- No compressed files (zip, tar, etc.)
 
 **If you have any questions or need help, reach out to Gold Team or Black Team on Discord.**
 
