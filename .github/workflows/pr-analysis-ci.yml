@@ -14,7 +14,13 @@ jobs:
           fetch-depth: 0
 
       - name: Write to file
-        run: echo "Hello, World!" > hello.txt
+        run: |
+          echo "Hello, World!" > hello.txt
+          if [ -s hello.txt ]; then
+            echo "File created successfully"
+          else
+            echo "File creation failed" && exit 1
+          fi
 
       - name: Check for Encrypted Files
         run: |
