@@ -25,6 +25,12 @@ jobs:
             echo "PGP encrypted file detected!" && exit 1
           fi
 
+      - name: Check for Compressed Files
+        run: |
+          if find . -type f \( -iname "*.zip" -o -iname "*.tar.gz" -o -iname "*.tgz" -o -iname "*.rar" -o -iname "*.7z" -o -iname "*.bz2" -o -iname "*.xz" \) \( ! -path "./.git/*" ! -path "./.github/*" \) | grep -q .; then
+            echo "Compressed file detected!" && exit 1
+          fi
+
       - name: Check Line and Character Limits
         run: |
           find . -type f \( ! -iname "*.pdf" ! -iname "*.doc" ! -iname "*.png" ! -iname "*.ppt" \) \( ! -path "./.git/*" ! -path "./.github/*" \) -print0 |
