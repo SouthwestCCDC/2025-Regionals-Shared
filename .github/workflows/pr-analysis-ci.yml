@@ -5,7 +5,7 @@ on:
     types: [opened, synchronize, reopened]
 
 jobs:
-  analyze-pr:
+  check encrypted files:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout PR Code
@@ -30,6 +30,13 @@ jobs:
             exit 1
           fi
 
+  check compressed files:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout PR Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Check for Compressed Files
         run: |
           find . -type f \( -iname "*.zip" -o -iname "*.tar.gz" -o -iname "*.tgz" -o -iname "*.rar" -o -iname "*.7z" -o -iname "*.bz2" -o -iname "*.xz" \) \( ! -path "./.git/*" ! -path "./.github/*" \) > /tmp/compressed_files.txt
@@ -37,29 +44,39 @@ jobs:
             echo "Compressed files detected:" && cat /tmp/compressed_files.txt && exit 1
           fi
 
+  check line and character limits:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout PR Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Check Line and Character Limits
         run: |
           find . -type f \( ! -iname "*.pdf" ! -iname "*.doc" ! -iname "*.png" ! -iname "*.ppt" \) \( ! -path "./.git/*" ! -path "./.github/*" \) -print0 |
           xargs -0 awk 'length > 400 {print FILENAME " has a line exceeding 400 characters"; exit 1} END {if (NR > 15000) {print FILENAME " has more than 15,000 lines"; exit 1}}'
 
-      - name: debug binary file
-        run: |
-          find . -type f \( ! -path "./.git/*" ! -path "./.github/*" \) -exec file --mime {} + |
-          grep -vE 'text|application/pdf|application/msword|image/png|application/vnd.ms-powerpoint' | tee /tmp/binary_files.txt | 
-          grep -q . && { echo 'Binary files detected!'; cat /tmp/binary_files.txt; exit 1; } || echo "No binary files found"
-          # find . -type f \( ! -path "./.git/*" ! -path "./.github/*" \) -exec file --mime {} + | tee /tmp/file_output.txt
-          # cat /tmp/file_output.txt
-          # grep -vE 'text|application/pdf|application/msword|image/png|application/vnd.ms-powerpoint' /tmp/file_output.txt > /tmp/binary_files.txt
-          # cat /tmp/binary_files.txt
-          # echo "DONE"
-
+  check binary files:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout PR Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Check for Binary Files
         run: |
           find . -type f \( ! -path "./.git/*" ! -path "./.github/*" \) -exec file --mime {} + |
           grep -vE 'text|application/pdf|application/msword|image/png|application/vnd.ms-powerpoint' | tee /tmp/binary_files.txt | 
           grep -q . && { echo 'Binary files detected!'; cat /tmp/binary_files.txt; exit 1; } || echo "No binary files found"
 
-      - name: Check README.md Content
+  check school.md content:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout PR Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Check school.md Content
         run: |
           find . -type d \( ! -iname ".git" ! -iname "*.github" \) -mindepth 1 -maxdepth 1 | while read dir; do
             if [ ! -s "$dir/school.md" ]; then
