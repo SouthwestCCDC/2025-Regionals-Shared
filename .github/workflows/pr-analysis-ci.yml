@@ -15,20 +15,20 @@ jobs:
 
       - name: Check for Encrypted Files
         run: |
-          find . -type f \( -iname "*.gpg" -o -iname "*.pgp" -o -iname "*.asc" -o -iname "*.kdbx" \) \( ! -path "./.git/*" ! -path "./.github/*" \) > /tmp/encrypted_files.txt
-          if [ -s /tmp/encrypted_files.txt ]; then
-            echo "Encrypted GPG files detected:" && cat /tmp/encrypted_files.txt && exit 1
+          find . -type f \( -iname "*.gpg" -o -iname "*.pgp" -o -iname "*.asc" -o -iname "*.kdbx" \) \( ! -path "./.git/*" ! -path "./.github/*" \) > encrypted_files.txt
+          if [ -s encrypted_files.txt ]; then
+            echo "Encrypted GPG files detected:" && cat encrypted_files.txt && exit 1
           fi
-          find . -type f \( ! -path "./.git/*" ! -path "./.github/*" \) -exec file {} + | grep "PGP message" > /tmp/pgp_files.txt
-          if [ -s /tmp/pgp_files.txt ]; then
-            echo "PGP encrypted files detected:" && cat /tmp/pgp_files.txt && exit 1
+          find . -type f \( ! -path "./.git/*" ! -path "./.github/*" \) -exec file {} + | grep "PGP message" > pgp_files.txt
+          if [ -s pgp_files.txt ]; then
+            echo "PGP encrypted files detected:" && cat pgp_files.txt && exit 1
           fi
 
       - name: Check for Compressed Files
         run: |
-          find . -type f \( -iname "*.zip" -o -iname "*.tar.gz" -o -iname "*.tgz" -o -iname "*.rar" -o -iname "*.7z" -o -iname "*.bz2" -o -iname "*.xz" \) \( ! -path "./.git/*" ! -path "./.github/*" \) > /tmp/compressed_files.txt
-          if [ -s /tmp/compressed_files.txt ]; then
-            echo "Compressed files detected:" && cat /tmp/compressed_files.txt && exit 1
+          find . -type f \( -iname "*.zip" -o -iname "*.tar.gz" -o -iname "*.tgz" -o -iname "*.rar" -o -iname "*.7z" -o -iname "*.bz2" -o -iname "*.xz" \) \( ! -path "./.git/*" ! -path "./.github/*" \) > compressed_files.txt
+          if [ -s compressed_files.txt ]; then
+            echo "Compressed files detected:" && cat compressed_files.txt && exit 1
           fi
 
       - name: Check Line and Character Limits
@@ -38,9 +38,9 @@ jobs:
 
       - name: Check for Binary Files
         run: |
-          find . -type f \( ! -path "./.git/*" ! -path "./.github/*" \) -exec file --mime {} + | grep -vE 'text|application/pdf|application/msword|image/png|application/vnd.ms-powerpoint' > /tmp/binary_files.txt
-          if [ -s /tmp/binary_files.txt ]; then
-            echo "Binary files detected:" && cat /tmp/binary_files.txt && exit 1
+          find . -type f \( ! -path "./.git/*" ! -path "./.github/*" \) -exec file --mime {} + | grep -vE 'text|application/pdf|application/msword|image/png|application/vnd.ms-powerpoint' > binary_files.txt
+          if [ -s binary_files.txt ]; then
+            echo "Binary files detected:" && cat binary_files.txt && exit 1
           fi
 
       - name: Check README.md Content
