@@ -45,7 +45,7 @@ jobs:
       - name: debug binary file
         run: |
           find . -type f \( ! -path "./.git/*" ! -path "./.github/*" \) -exec file --mime {} + |
-          grep -vE 'text|application/pdf|application/msword|image/png|application/vnd.ms-powerpoint' | grep -q . && { echo 'Binary files detected!'; exit 1; } || echo "No binary files found"
+          grep -vE 'text|application/pdf|application/msword|image/png|application/vnd.ms-powerpoint' | tee /tmp/binary_files.txt | grep -q . && { echo 'Binary files detected!'; cat /tmp/binary_files.txt; exit 1; } || echo "No binary files found"
           # find . -type f \( ! -path "./.git/*" ! -path "./.github/*" \) -exec file --mime {} + | tee /tmp/file_output.txt
           # cat /tmp/file_output.txt
           # grep -vE 'text|application/pdf|application/msword|image/png|application/vnd.ms-powerpoint' /tmp/file_output.txt > /tmp/binary_files.txt
