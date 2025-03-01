@@ -19,7 +19,7 @@ jobs:
           if [ -s encrypted_files.txt ]; then
             echo "Encrypted GPG files detected:" && cat encrypted_files.txt && exit 1
           fi
-          find . -type f \( ! -path "./.git/*" ! -path "./.github/*" \) -exec file {} + | grep "PGP message" > pgp_files.txt
+          find . -type f \( ! -path "./.git/*" ! -path "./.github/*" \) -exec file {} + | grep 'PGP message' > pgp_files.txt
           if [ -s pgp_files.txt ]; then
             echo "PGP encrypted files detected:" && cat pgp_files.txt && exit 1
           fi
