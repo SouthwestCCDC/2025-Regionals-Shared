@@ -1,0 +1,6 @@
+{% for group, hosts in dynamic_groups.items() %}
+[{{ group }}]
+{% for host in hosts %}
+{{ host }}
+{% endfor %}
+{% endfor %}

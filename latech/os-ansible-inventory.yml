@@ -1,0 +1,24 @@
+---
+- name: Generate new inventory file from dynamic groups
+  hosts: all
+  gather_facts: yes
+  tasks:
+    - name: Group hosts by their OS
+      group_by:
+        key: "os_{{ ansible_facts['os_family'] }}"
+
+    - name: Save group information to a fact
+      set_fact:
+        dynamic_groups: "{{ groups }}"
+
+    - name: Write dynamic inventory to file on localhost
+      template:
+        src: os-template.j2
+        dest: ./new_inventory.ini
+      delegate_to: localhost
+      run_once: true
+
+    - name: Display the generated inventory file location
+      debug:
+        msg: "New inventory file created at ./new_inventory.ini on localhost"
+...

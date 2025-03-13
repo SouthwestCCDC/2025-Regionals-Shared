@@ -1,0 +1,76 @@
+---
+- name: Configure auditd and rsyslog for command execution and auth logging
+  hosts: all
+  become: yes
+  tasks:
+  
+    - name: Ensure auditd is installed
+      apt:
+        name: auditd
+        state: present
+        update_cache: yes
+
+    - name: Enable and start auditd service
+      systemd:
+        name: auditd
+        enabled: yes
+        state: started
+
+    - name: Create audit rules for command execution
+      copy:
+        dest: /etc/audit/rules.d/commands.rules
+        content: |
+          # Log every command executed
+          -w /usr/bin/ -p x -k command_exec
+          -w /bin/ -p x -k command_exec
+        owner: root
+        group: root
+        mode: '0644'
+      notify: Reload auditd rules
+
+    - name: Ensure auditd logs are in RAW format
+      lineinfile:
+        path: /etc/audit/auditd.conf
+        regexp: '^log_format'
+        line: 'log_format = RAW'
+      notify: Restart auditd
+
+    - name: Configure rsyslog to forward audit and auth logs
+      copy:
+        dest: /etc/rsyslog.d/50-audit.conf
+        content: |
+          module(load="imfile")
+
+          # Audit log configuration
+          input(type="imfile"
+                File="/var/log/audit/audit.log"
+                Tag="auditd"
+                Severity="info"
+                Facility="local6")
+
+          # Auth log configuration
+          input(type="imfile"
+                File="/var/log/auth.log"
+                Tag="auth"
+                Severity="info"
+                Facility="local6")
+
+          local6.* @your-graylog-server:1514
+        owner: root
+        group: root
+        mode: '0644'
+      notify: Restart rsyslog
+
+  handlers:
+    - name: Reload auditd rules
+      command: augenrules --load
+
+    - name: Restart auditd
+      systemd:
+        name: auditd
+        state: restarted
+
+    - name: Restart rsyslog
+      systemd:
+        name: rsyslog
+        state: restarted
