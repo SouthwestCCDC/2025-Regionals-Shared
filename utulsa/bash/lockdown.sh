@@ -136,8 +136,24 @@ function kernel_lockdown()
 		then
 			success "Enabling secure kernel options."
 			cp -n /etc/sysctl.conf /etc/sysctl.conf.bak
-			printf "kernel.core_uses_pid=1\nkernel.randomize_va_space=2\nkernel.sysrq=0\nnet.ipv4.conf.all.accept_redirects=0\nnet.ipv4.conf.all.accept_source_route=0\nnet.ipv4.conf.all.log_martians=1\nnet.ipv4.conf.all.rp_filter=1\nnet.ipv4.conf.all.send_redirects=0\nnet.ipv4.conf.default.rp_filter=1\nnet.ipv4.icmp_echo_ignore_broadcasts=1\nnet.ipv4.ip_forward=0\nnet.ipv4.tcp_syncookies=1\nnet.ipv6.conf.all.accept_redirects=0\nnet.ipv6.conf.all.accept_source_route=0\nnet.ipv6.conf.all.disable_ipv6=0\nnet.ipv6.conf.default.disable_ipv6=0\nnet.ipv6.conf.lo.disable_ipv6=1" > /etc/sysctl.conf
-			#sysctl -w kernel.randomize_va_space=2 >/dev/null;sysctl -w net.ipv4.conf.default.rp_filter=1>/dev/null;sysctl -w net.ipv4.conf.all.rp_filter=1>/dev/null;sysctl -w net.ipv4.tcp_syncookies=1>/dev/null;sysctl -w net.ipv4.ip_forward=0>/dev/null;sysctl -w net.ipv4.conf.all.accept_redirects=0>/dev/null;sysctl -w net.ipv6.conf.all.accept_redirects=0>/dev/null;sysctl -w net.ipv4.conf.all.send_redirects=0>/dev/null;sysctl -w net.ipv4.conf.all.accept_source_route=0>/dev/null;sysctl -w net.ipv6.conf.all.accept_source_route=0>/dev/null;sysctl -w net.ipv4.conf.all.log_martians=1>/dev/null;
+			printf "%s\n" \
+			"kernel.core_uses_pid=1" \
+			"kernel.randomize_va_space=2" \
+			"kernel.sysrq=0" \
+			"net.ipv4.conf.all.accept_redirects=0" \
+			"net.ipv4.conf.all.accept_source_route=0" \
+			"net.ipv4.conf.all.log_martians=1" \
+			"net.ipv4.conf.all.rp_filter=1" \
+			"net.ipv4.conf.all.send_redirects=0" \
+			"net.ipv4.conf.default.rp_filter=1" \
+			"net.ipv4.icmp_echo_ignore_broadcasts=1" \
+			"net.ipv4.ip_forward=0" \
+			"net.ipv4.tcp_syncookies=1" \
+			"net.ipv6.conf.all.accept_redirects=0" \
+			"net.ipv6.conf.all.accept_source_route=0" \
+			"net.ipv6.conf.all.disable_ipv6=0" \
+			"net.ipv6.conf.default.disable_ipv6=0" \
+			"net.ipv6.conf.lo.disable_ipv6=1" > /etc/sysctl.conf
 			sysctl -p 
 		fi
 	fi
