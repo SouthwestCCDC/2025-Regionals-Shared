@@ -29,7 +29,7 @@ function info() {
     ss -tunap
 
     header "Sudo Commands:"
-    journalctl _COMM=sudo --no-pager | grep "$(date "+%b %d")"
+    journalctl _COMM=sudo --no-pager | grep "$(date "+%b %d")" | grep -v "session opened" | grep -v "session closed"
 }
 
 function command_exists() {
@@ -100,12 +100,46 @@ function software() {
 function usage(){
     programname=$0
     echo "Usage: $programname [option]"
-    echo "  -b      Basic Info Mode"
-    echo "  -l      Check logins"
-    echo "  -h      Display Help"
-    echo "  -s      Display Software Info"
-    echo "  -setup  Installed needed packages"
+    echo "  -b                  Basic Info Mode"
+    echo "  -l                  Check logins"
+    echo "  -h                  Display Help"
+    echo "  -s                  Display Software Info"
+    echo "  -setup              Installed needed packages"
+    echo "  -sudo               Find sudo commands given a username"
     exit 1
+}
+
+function setup() {
+    header "Updating and installing neccessary packages"
+    if [[ $DISTRIBUTION == "debian" ]]; then
+        apt update
+        apt install net-tools
+    fi
+    
+    if [[ $DISTRIBUTION == "redhat" ]]; then
+        yum update -y
+        yum install net-tools -y
+    fi
+
+    if [[ $DISTRIBUTION == "alpine" ]]; then
+        apk update
+        apk add net-tools
+    fi
+
+    if [[ $DISTRIBUTION == "freebsd" ]]; then
+        pkg update
+        pkg install net-tools
+    fi
+}
+
+# Find sudo commands via a given username
+function sudocommands () {
+    header "Sudo commands executed today given a username:"
+    echo "Please enter a username:"
+    read username
+    journalctl _COMM=sudo --no-pager | grep "$(date "+%b %d")" | grep -v "session opened" | grep -v "session closed" | grep "$username"
+
+    # journalctl _COMM=sudo --no-pager | grep "$(date "+%b %d")" | grep -v "session opened" | grep -v "session closed" | grep "matt" | awk '{print $1 " " $2 " " $3 " " $6 " " $14}'
 }
 
 # Get distro
@@ -144,13 +178,12 @@ if [[ "$FLAG" != "-h" ]]
     echo -e "Executing as user: $CURRENT_USER\n"
 fi
 
-
-
-
 # Run Specified Mode
 case $FLAG in
         "-b")   info;;
         "-l")   logins;;
         "-h")   usage;;
         "-s")   software;;
+        "-setup")   setup;;
+        "-sudo")    sudocommands;;
 esac
