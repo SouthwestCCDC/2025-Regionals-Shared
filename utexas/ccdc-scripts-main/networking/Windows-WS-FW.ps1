@@ -1,0 +1,1 @@
+Set-NetFirewallProfile -All -Enabled True -DefaultInboundAction Block -DefaultOutboundAction Allow -AllowInboundRules False -AllowUnicastResponseToMulticast False -NotifyOnListen True -EnableStealthModeForIPsec True -LogMaxSizeKilobytes 32767 -LogAllowed True
