@@ -87,7 +87,7 @@ jobs:
       - name: Check for Binary Files
         run: |
           find . -type f \( ! -path "./.git/*" ! -path "./.github/*" \) -exec file --mime {} + |
-          grep -vE 'empty|text|application/pdf|application/msword|image/png|application/vnd.ms-powerpoint' | tee /tmp/binary_files.txt | 
+          grep -vE 'empty|text|application/javascript|application/pdf|application/msword|image/png|application/vnd.ms-powerpoint' | tee /tmp/binary_files.txt | 
           grep -q . && { echo 'Binary files detected!'; cat /tmp/binary_files.txt; exit 1; } || echo "No binary files found"
 
   check-school-md-content:
