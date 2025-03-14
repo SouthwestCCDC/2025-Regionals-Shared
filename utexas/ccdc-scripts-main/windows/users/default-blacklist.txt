@@ -1,6 +1,0 @@
-Administrator
-blackteam
-krbtgt
-Guest
-WDAGUtilityAccount
-DefaultAccount
