@@ -6,6 +6,10 @@ sudo apt-get update
 sudo apt-get install -y curl gcc make g++ libevent-dev perl asciinema mpv
 set +x
 
+# Join long lines
+mv haproxy_conf/haproxy.cfg haproxy_conf/haproxy.cfg.bak
+perl -pe '$_.=<>,s/\n// while /JOINNEXTLINE$/' web-app-fw/haproxy_conf/haproxy.cfg.bak > haproxy_conf/haproxy.cfg
+
 DOWNLOAD="curl -L"
 
 CWD=$(pwd)
