@@ -1,0 +1,240 @@
+#!/bin/expect
+
+#exp_internal 1
+
+set tmux_window_target [lindex $argv 0]
+set tmux_notify_channel [lindex $argv 1]
+set machine_ip [lindex $argv 2]
+set username [lindex $argv 3]
+set password [lindex $argv 4]
+set new_username [lindex $argv 5]
+set new_password [lindex $argv 6]
+set ssh_key_path [lindex $argv 7]
+
+set ssh_pubkey [exec cat "$ssh_key_path.pub"]
+
+proc end_script {code} {
+    exec tmux wait-for -S $::tmux_notify_channel
+    exit $code
+}
+
+set timeout 10
+
+spawn ssh -o StrictHostKeyChecking=accept-new "$username@$machine_ip"
+expect {
+  timeout {
+    send_user "Failed to connect to $machine_ip with ssh: timeout\n"
+    end_script 1
+  }
+  eof {
+    send_user "Failed to connect to $machine_ip with ssh: eof\n"
+    end_script 1
+  }
+  "ssword: " {}
+}
+
+send "$password\r"
+expect {
+  timeout {
+    send_user "Failed to log into $machine_ip with ssh: timeout\n"
+    end_script 1
+  }
+  eof {
+    send_user "Failed to log into $machine_ip with ssh: eof\n"
+    end_script 1
+  }
+  "try again." {
+    send_user "Failed to log into $machine_ip with ssh: incorrect password\n"
+    end_script 1
+  }
+  "\$ " {
+    send_user "# Expect: Assuming this is a linux user shell\n"
+    set shell_type "linux-user"
+  }
+  "# " {
+    send_user "# Expect: Assuming this is a linux root shell\n"
+    set shell_type "linux-root"
+  }
+  "~> $" {
+    send_user "# Expect: Assuming this is a linux user shell\n"
+    set shell_type "linux-user"
+  }
+  "> $" {
+    send_user "# Expect: Assuming this is a windows shell\n"
+    set shell_type "windows"
+    send_user "Exiting"
+    end_script 1
+  }
+}
+
+if { $shell_type == "linux-user" } {
+  send "{ command -v sudo && sudo -i; } || { command -v doas && doas -s; }\r"
+  expect {
+    "password for $username:" {
+      send "$password\r"
+      exp_continue
+    }
+    "password:" {
+      send "$password\r"
+      exp_continue
+    }
+    "not in the sudoers" {
+      send_user "# Expect: Failed to execute 'sudo -i'. Is this user a sudoer?\n"
+      end_script 1
+    }
+    "try again." {
+      send_user "# Expect: Failed to execute 'sudo -i'. Is this user a sudoer?\n"
+      end_script 1
+    }
+    "doas: Authentication failed" {
+      send_user "# Expect: Failed to execute 'doas -s'. Is this user a doas-er?\n"
+      end_script 1
+    }
+    "doas: Operation not permitted" {
+      send_user "# Expect: Failed to execute 'doas -s'. Is this user a doas-er?\n"
+      end_script 1
+    }
+    "\$ " {}
+    "# " {}
+  }
+}
+
+send "export PS1='# '\r"
+expect "# $"
+
+# Get hostname for the remote machine and change the tmux window title to match
+send "printf 'hostname:%s\\n' \"\$(hostname 2>/dev/null || uname -n 2>/dev/null || cat /etc/hostname 2>/dev/null || echo 'unknown')\"\r"
+expect -re {hostname:([A-Za-z.-]+)}
+set machine_hostname $expect_out(1,string)
+
+
+
+# 1. Create a new user
+# 2. Only allow access over ssh using a public key
+# 3. Give the user sudo access without a password
+# 4. Allow the user for login methods using pam_access.so
+#     The match in the config file (/etc/security/access.conf) is taken, and
+#     \"-:ALL:ALL\" is a common configuration, so the new rule must be added
+#     earlier in the file
+set new_user_sh "
+new_user_create() {
+  if command -v useradd >/dev/null; then
+    useradd -U -m $new_username
+    if \[ \"$?\" != 0 -a \"$?\" != 9 \]; then
+      echo 'Failed to add user' >&2
+      exit 1
+    fi
+  elif command -v adduser >/dev/null; then
+    resp=\"\$(adduser -D $new_username 2>&1)\"
+    if \[ \"$?\" != 0 -a \"adduser: user '$new_username' in use\" != \"\$resp\" \]; then
+      echo 'Failed to add user' >&2
+      exit 1
+    fi
+  fi
+
+  echo \"$new_username\:$new_password\" | chpasswd
+  if \[ \"$?\" != 0 \]; then
+    echo 'Failed to set user password' >&2
+    exit 1
+  fi
+
+  #passwd -l \"$new_username\"
+  #if \[ \"$?\" != 0 \]; then
+  #  echo 'Failed to lock user account' >&2
+  #  exit 1
+  #fi
+}
+new_user_ssh() {
+  if ! grep -q \"Match User $new_username\" /etc/ssh/sshd_config
+  then
+    cat <<EOF >> /etc/ssh/sshd_config
+Match User $new_username
+  AuthenticationMethods publickey
+  PubkeyAuthentication yes
+  PasswordAuthentication no
+EOF
+    systemctl reload sshd 2>/dev/null || service sshd reload 2>/dev/null
+  fi
+
+  if ! grep -q \"$ssh_pubkey\" \"/home/$new_username/.ssh/authorized_keys\"
+  then
+    mkdir -p \"/home/$new_username/.ssh\"
+    if \[ \"$?\" != 0 \]; then
+      echo 'Failed to create .ssh directory' >&2
+      exit 1
+    fi
+    echo \"$ssh_pubkey\" >> \"/home/$new_username/.ssh/authorized_keys\"
+    chown -R \"$new_username:$new_username\" \"/home/$new_username/.ssh\"
+    chmod -R 700 \"/home/$new_username/.ssh\"
+  fi
+}
+new_user_sudo() {
+  sudoer_string=\"$new_username ALL=(ALL:ALL) NOPASSWD:ALL\"
+  if ! grep -q \"\$sudoer_string\" /etc/sudoers
+  then
+    echo \"\$sudoer_string\" >> /etc/sudoers
+  fi
+}
+new_user_doas() {
+  doaser_string=\"permit nopass $new_username\"
+  if ! grep -q \"\$doaser_string\" /etc/doas.conf
+  then
+    echo \"\$doaser_string\" >> /etc/doas.conf
+  fi
+}
+new_user_access() {
+  echo 'Login methods using pam_access (/etc/security/access.conf):'
+  grep -r 'pam_access.so' /etc/pam.conf /etc/pam.d 2>/dev/null | grep -v '#.*pam_access.so'
+
+  access_string=\"+:$new_username:ALL\" 
+  if ! grep -q \"\$access_string\" /etc/security/access.conf 2>/dev/null
+  then
+    if \[ -d /etc/security ]; then
+      old_access_file=\"\$(cat /etc/security/access.conf)\"
+      echo \"\$access_string\" > /etc/security/access.conf
+      echo \"\$old_access_file\" >> /etc/security/access.conf
+    fi
+  fi
+}
+new_user_create && \
+new_user_ssh && \
+{ { command -v sudo && new_user_sudo ; } || { command -v doas && new_user_doas ; } ; } && \
+new_user_access && \
+echo Done
+"
+#exp_internal 1
+send "$new_user_sh"
+expect "\r\nDone\r\n"
+expect "# "
+
+
+set add_ssh_config_sh "
+add_ssh_config() {
+  if \[ \"unknown\" = \"$machine_hostname\" ]; then
+    hname=\"\$(printf \"%s\" \"$machine_ip\" | sed 's/\\./_/g')\"
+  else
+    hname=\"$machine_hostname\"
+  fi
+  if ! grep -q \"host \$hname\" ~/.ssh/config 2>/dev/null
+  then
+    cat <<EOF >> ~/.ssh/config
+host \$hname
+  HostName $machine_ip
+  IdentityFile $ssh_key_path
+  User $new_username
+EOF
+  fi
+}
+add_ssh_config
+"
+exec /bin/sh -c "$add_ssh_config_sh"
+
+send_user "# Expect: Created new user and added entry to ~/.ssh/config\n"
+send_user "  Log out of this pane if the pane to the right successfully logged in as $new_username and has NOPASSWD sudo access (or nopass doas access)\n"
+send_user "$machine_hostname\n"
+send_user "0"
+send "\n"
+expect "# "
+
+exec tmux wait-for -S $tmux_notify_channel
+interact

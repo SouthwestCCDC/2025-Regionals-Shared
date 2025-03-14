@@ -1,0 +1,100 @@
+[Unit]
+Description=Modsecurity SPOA server
+PartOf=waf.service
+After=waf.service
+
+[Service]
+Restart=always
+ExecStart=/bin/modsecurity -p 19824 -f /etc/modsecurity/modsecurity.conf
+
+# Sandboxing -------------------------------------------------------------------
+
+## Files & mounts --------------------------------------------------------------
+
+PrivateMounts=true
+
+# Hide all files that aren't explicitly bound
+TemporaryFileSystem=/:ro
+TemporaryFileSystem=/tmp
+PrivateTmp=true
+
+# Adds /dev/null, /dev/zero, and /dev/random
+PrivateDevices=true
+
+# Dynamically linked libraries
+BindReadOnlyPaths=/lib /lib64 /usr/lib /usr/lib64
+
+# Needed for reloading the service
+BindReadOnlyPaths=/bin/kill
+
+## Needed to notify systemd of service status
+BindPaths=/run/systemd/notify
+
+# DNS
+BindReadOnlyPaths=/etc/resolv.conf
+
+# Configuration files & binary
+BindReadOnlyPaths=/opt/waf_configs/modsecurity/modsecurity:/bin/modsecurity
+BindReadOnlyPaths=/opt/waf_configs/modsecurity/libmodsecurity.so:/lib/libmodsecurity.so.3
+BindReadOnlyPaths=/opt/waf_configs/modsecurity/modsecurity.conf:/etc/modsecurity/modsecurity.conf
+BindReadOnlyPaths=/opt/waf_configs/modsecurity/rules:/etc/modsecurity/rules
+BindReadOnlyPaths=/opt/waf_configs/modsecurity/unicode.mapping:/etc/modsecurity/unicode.mapping
+
+# Log files
+BindPaths=/opt/waf_configs/modsecurity/audit.log:/var/log/modsec_audit.log
+
+UMask=0077
+
+## User ------------------------------------------------------------------------
+
+User=waf_user
+
+## Restrictions ----------------------------------------------------------------
+
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+RestrictFileSystems=tmpfs
+RestrictNamespaces=true
+MemoryDenyWriteExecute=true
+
+ProtectProc=invisible
+ProcSubset=pid
+
+## Capabilities & system calls -------------------------------------------------
+# Some of these are redundant with the readonly filesystem, but can be useful
+# if more access is needed to the filesystem
+
+# Prevent privilege escalation
+NoNewPrivileges=true
+
+# Allow binding ports
+AmbientCapabilities=CAP_NET_BIND_SERVICE
+CapabilityBoundingSet=CAP_NET_BIND_SERVICE
+# (Needs v249 or later) Restrict ports the service can listen on
+SocketBindAllow=tcp:19824
+SocketBindDeny=any
+
+# Disable risky system calls
+SystemCallFilter=@system-service
+SystemCallFilter=~@cpu-emulation @keyring @module @obsolete @raw-io
+SystemCallFilter=~@reboot @swap @sync
+
+# Prevent changes to the system time
+ProtectClock=true
+
+# Prevent changes to the system hostname
+ProtectHostname=true
+
+# Prevent changes to the kernel
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectKernelLogs=true
+
+# Prevent changes to control groups (used for containers)
+ProtectControlGroups=true
+
+# Prevent possible bugs in code for other architectures
+SystemCallArchitectures=native
+LockPersonality=true
+
+[Install]
+WantedBy=waf.service
